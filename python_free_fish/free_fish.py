@@ -27,11 +27,11 @@ def search_key():
     return data
 
 
-def insert_log(db, id, usernick, key_id, url, title, price, location, desc, time, search_time):
+def insert_log(db, id, user_nick, appoint_key_id, url, title, price, location, desc, time, search_time):
     # 打开数据库连接
     # 使用cursor()方法获取操作游标
     cursor = db.cursor()
-    cursor.execute("SELECT `id`, `key_id`, `url`, `title`, `price`, `now_price`, `remark`, `status`, `location`, `desc`, `time`, `search_time` FROM fishs WHERE id='%s'" % id)
+    cursor.execute("SELECT `id`, `appoint_key_id`, `url`, `title`, `price`, `now_price`, `remark`, `status`, `location`, `desc`, `time`, `search_time` FROM fishs WHERE id='%s'" % id)
     data = cursor.fetchone()
     if data:
         disparity = float(price) - float(data[5])
@@ -51,13 +51,13 @@ def insert_log(db, id, usernick, key_id, url, title, price, location, desc, time
                 remark = "'%s'" % data[6]
             status = data[7]
         sql = "UPDATE fishs SET \
-            `key_id`='%s', `usernick`='%s', `url`='%s', `title`='%s', `now_price`='%s', `location`='%s', \
+            `appoint_key_id`='%s', `user_nick`='%s', `url`='%s', `title`='%s', `now_price`='%s', `location`='%s', \
             `desc`='%s', `time`='%s',`search_time`='%s', `remark`=%s, `status`='%s' \
-            WHERE id='%s'" % (key_id, usernick, url, title, price, location, desc, time, search_time, remark, status, id)
+            WHERE id='%s'" % (appoint_key_id, user_nick, url, title, price, location, desc, time, search_time, remark, status, id)
     else:
-        sql = "INSERT INTO fishs(`id`, `usernick`, `key_id`, `url`, `title`, `price`, `now_price`, `location`, `desc`, `time`, `search_time`) \
+        sql = "INSERT INTO fishs(`id`, `user_nick`, `appoint_key_id`, `url`, `title`, `price`, `now_price`, `location`, `desc`, `time`, `search_time`) \
                           VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')" % \
-              (id, usernick, key_id, url, title, price, price, location, desc, time, search_time)
+              (id, user_nick, appoint_key_id, url, title, price, price, location, desc, time, search_time)
         os.system("echo '%s' '%s'" % ("新发布:￥" + price, title+" "+url))
         os.system("notify-send '%s' '%s' -t %d" % ("新发布:￥" + price, title + " " + url, insert_show_time))
     try:
@@ -93,16 +93,16 @@ def perform_command(cmd, inc):
                     if aa is None:
                         continue
                     a = aa.a
-                    usernick = element.find("div", class_="seller-nick").a.string
+                    user_nick = element.find("div", class_="seller-nick").a.string
                     url = "http:%s" % a.get('href')
                     id = url.split('?id=')[1]
                     title = a.get('title')
                     price = element.find("span", class_="price").em.string
                     location = element.find("div", class_="item-location").string
                     desc = element.find("div", class_="item-brief-desc").string
-                    upTime = element.find("span", class_="item-pub-time").string
+                    up_time = element.find("span", class_="item-pub-time").string
                     # (id, url, title, price, location, desc, time):
-                    insert_log(db, id, usernick, item[0], url, title, price, location, desc, upTime, time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+                    insert_log(db, id, user_nick, item[0], url, title, price, location, desc, up_time, time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
         except Exception, e:
             print(e.message)
     os.system("echo $(date) 本轮结束 '\n'--------------------------------'\n'")
