@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import dva, { connect } from 'dva';
-import { LocaleProvider, DatePicker, message,Upload, Icon,Spin ,Button,Select} from 'antd';
+import { LocaleProvider, Table, message,Upload, Icon,Spin ,Button,Select} from 'antd';
 // 由于 antd 组件的默认文案是英文，所以需要修改为中文
 import zhCN from 'antd/lib/locale-provider/zh_CN';
 import moment from 'moment';
@@ -10,15 +10,34 @@ import { openS,closeS,searchS} from './services/api';
 
 moment.locale('zh-cn');
 
-const defaultPort=8101;
+const columns = [{
+    title: 'Name',
+    dataIndex: 'name',
+}, {
+    title: 'Age',
+    dataIndex: 'age',
+}, {
+    title: 'Address',
+    dataIndex: 'address',
+}];
 
-class MyUpload extends React.Component {
+const data = [];
+for (let i = 0; i < 46; i++) {
+    data.push({
+        key: i,
+        name: `Edward King ${i}`,
+        age: 32,
+        address: `London, Park Lane no. ${i}`,
+    });
+}
+
+class FreeFish extends React.Component {
     state = {
         serviceChange: true,
         serviceStatus: undefined,
         loadingTip: "查询服务状态",
         fileList: [],
-        port: defaultPort,
+        port: 8097,
     };
 
     constructor(props) {
@@ -28,6 +47,27 @@ class MyUpload extends React.Component {
         this.state = {
             date: '',
         };
+
+
+        // get the client
+        const mysql = require('mysql2');
+
+// create the connection to database
+        const connection = mysql.createConnection({
+            host: 'vps.yining.site',
+            user: 'baymin',
+         
+            database: 'free_fish'
+        });
+
+// simple query
+//         connection.query(
+//             'SELECT * FROM `table` WHERE `name` = "Page" AND `age` > 45',
+//             function(err, results, fields) {
+//                 console.log(results); // results contains rows returned by server
+//                 console.log(fields); // fields contains extra meta data about results, if available
+//             }
+//         );
     }
 
     // componentDidMount(){
@@ -41,15 +81,16 @@ class MyUpload extends React.Component {
             table.setAttribute('id','table-to-xls');
         }
         catch (e) {
-            console.error(e);
+            // console.error(e);
         }
+
 
 
         const {dispatch} = this.props;
         message.success(`正在查询服务开启状态...`);
         dispatch({
             type: 'service/searchS',
-            payload: defaultPort,
+            payload: 8081,
             callback: (v) => {
                 console.log(`${this.state.port}服务开启状态:${v}`);
                 if (v === 1) {
@@ -243,7 +284,7 @@ class MyUpload extends React.Component {
                       tip={`loading.....${this.state.loadingTip === undefined ? "查询服务状态" : this.state.loadingTip}`}>
                     <div style={{width: '50%', margin: '100px auto'}}>
                         端口:
-                        <Select defaultValue={defaultPort} style={{ width: 120 }} onChange={this.selectHandleChange}>
+                        <Select defaultValue={8097} style={{ width: 120 }} onChange={this.selectHandleChange}>
                             <Option value="8097">8097</Option>
                             <Option value="8098">8098</Option>
                             <Option value="8099">8099</Option>
@@ -313,7 +354,7 @@ const App = connect(({ service }) => ({
     const { dispatch } = props;
     return (
         <div>
-            <MyUpload dispatch={dispatch}/>
+            <FreeFish dispatch={dispatch}/>
         </div>
     );
 });

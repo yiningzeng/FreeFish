@@ -1,3 +1,6 @@
 /.vscode
 /.idea
 /node_modules
+/python_free_fish/.idea
+/python_free_fish/log.log
+/python_free_fish/pid.txt
