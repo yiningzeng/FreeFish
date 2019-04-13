@@ -31,7 +31,7 @@ def insert_log(db, id, user_nick, appoint_key_id, url, title, price, location, d
     # 打开数据库连接
     # 使用cursor()方法获取操作游标
     cursor = db.cursor()
-    cursor.execute("SELECT `id`, `appoint_key_id`, `url`, `title`, `price`, `now_price`, `remark`, `status`, `location`, `desc`, `time`, `search_time` FROM fishs WHERE id='%s'" % id)
+    cursor.execute("SELECT `id`, `appoint_key_id`, `url`, `title`, `price`, `now_price`, `remark`, `status_type`, `location`, `description`, `distance`, `search_time` FROM fishs WHERE id='%s'" % id)
     data = cursor.fetchone()
     if data:
         disparity = float(price) - float(data[5])
@@ -52,10 +52,10 @@ def insert_log(db, id, user_nick, appoint_key_id, url, title, price, location, d
             status = data[7]
         sql = "UPDATE fishs SET \
             `appoint_key_id`='%s', `user_nick`='%s', `url`='%s', `title`='%s', `now_price`='%s', `location`='%s', \
-            `desc`='%s', `time`='%s',`search_time`='%s', `remark`=%s, `status`='%s' \
+            `description`='%s', `distance`='%s',`search_time`='%s', `remark`=%s, `status_type`='%s' \
             WHERE id='%s'" % (appoint_key_id, user_nick, url, title, price, location, desc, time, search_time, remark, status, id)
     else:
-        sql = "INSERT INTO fishs(`id`, `user_nick`, `appoint_key_id`, `url`, `title`, `price`, `now_price`, `location`, `desc`, `time`, `search_time`) \
+        sql = "INSERT INTO fishs(`id`, `user_nick`, `appoint_key_id`, `url`, `title`, `price`, `now_price`, `location`, `description`, `distance`, `search_time`) \
                           VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')" % \
               (id, user_nick, appoint_key_id, url, title, price, price, location, desc, time, search_time)
         os.system("echo '\t\t%s' '%s'" % ("新发布:￥" + price, title+" "+url))
@@ -119,4 +119,4 @@ def run(cmd, inc=20*60):
 
 
 if __name__ == '__main__':
-    run('echo $(date) 开始查询', 8*10)
+    run('echo $(date) 开始查询', 1)
