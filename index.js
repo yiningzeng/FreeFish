@@ -33,46 +33,13 @@ for (let i = 0; i < 46; i++) {
 
 class FreeFish extends React.Component {
     state = {
-        serviceChange: true,
-        serviceStatus: undefined,
-        loadingTip: "查询服务状态",
-        fileList: [],
-        port: 8097,
+        selectedRowKeys: [], // Check here to configure the default column
     };
 
-    constructor(props) {
-        super(props);
-
-
-        this.state = {
-            date: '',
-        };
-
-
-        // get the client
-        const mysql = require('mysql2');
-
-// create the connection to database
-        const connection = mysql.createConnection({
-            host: 'vps.yining.site',
-            user: 'baymin',
-         
-            database: 'free_fish'
-        });
-
-// simple query
-//         connection.query(
-//             'SELECT * FROM `table` WHERE `name` = "Page" AND `age` > 45',
-//             function(err, results, fields) {
-//                 console.log(results); // results contains rows returned by server
-//                 console.log(fields); // fields contains extra meta data about results, if available
-//             }
-//         );
-    }
-
-    // componentDidMount(){
-
-    // }
+    onSelectChange = (selectedRowKeys) => {
+        console.log('selectedRowKeys changed: ', selectedRowKeys);
+        this.setState({ selectedRowKeys });
+    };
 
     componentDidMount() {
         try{
@@ -83,9 +50,6 @@ class FreeFish extends React.Component {
         catch (e) {
             // console.error(e);
         }
-
-
-
         const {dispatch} = this.props;
         message.success(`正在查询服务开启状态...`);
         dispatch({
@@ -103,218 +67,54 @@ class FreeFish extends React.Component {
                 // message.success(JSON.stringify(v));
             },
         });
-        // this.refs.table.refs.table.width='20%';
-        // const tableCon = ReactDOM.findDOMNode(this.refs['tables']);
-        // const table = tableCon.querySelector('table');
-        // this.refs.table.setAttribute('id','table-to-xls');
     }
 
-    handleChange = info => {
-        let fileList = info.fileList;
-        // message.success(JSON.stringify(fileList));
-        // 1. Limit the number of uploaded files
-        // Only to show two recent uploaded files, and old ones will be replaced by the new
-        // fileList = fileList.slice(-2);
-
-        // 2. Read from response and show file link
-        fileList = fileList.map(file => {
-
-            if (file.response) {
-                file.name = file.response.data.fileBeforeName + " " + file.response.data.label_str;
-                console.log(JSON.stringify(file.response));
-                if (file.response.code == 0) {
-                    file.uid = file.response.data.id;
-                    if (file.response.data.num > 0) {
-                        file.status = 'done';
-                        file.url = file.response.data.url;
-                    }
-                    else {
-                        file.name = file.response.data.fileBeforeName + " (无瑕疵)";
-                        file.status = 'done';
-                        file.url = file.response.data.url;
-                    }
-                    // else file.status='error';
-                }
-                else {
-                    file.status = 'error';
-                    file.name = file.response.data.fileBeforeName + " (无法识别)";
-                }
-                // Component will show file.url as link
-                // file.url = file.response.url;
-            }
-            return file;
-        });
-        // message.success(JSON.stringify(fileList));
-        // 3. Filter successfully uploaded files according to response from server
-        // fileList = fileList.filter(file => {
-        //     if (file.response) {
-        //         return file.response.status === "success";
-        //     }
-        //     return true;
-        // });
-        this.setState({fileList});
-    };
-
-    closeOnChange=()=>{
-        const {dispatch} = this.props;
-        this.setState({serviceChange: true});
-        message.success(`正在关闭服务...`);
-        dispatch({
-            type: 'service/closeS',
-            payload: this.state.port===undefined?8101:this.state.port,
-            callback: (v) => {
-                if (v === 1) {
-                    let i = 0;
-                    while (i < 3) {
-                        this.timer = setTimeout(
-                            () => {
-                                dispatch({
-                                    type: 'service/searchS',
-                                    payload: this.state.port===undefined?8101:this.state.port,
-                                    callback: (v) => {
-                                        if (v === 0) {
-                                            this.setState({serviceChange:false,serviceStatus:false});
-                                        }
-                                        else {
-                                            message.error("关闭失败");
-                                            this.setState({serviceChange:false,serviceStatus:true});
-                                        }
-                                    },
-                                });
-                            },
-                            5000
-                        );
-                        i++;
-                    }
-                }
-                else {
-                    message.error("关闭失败");
-                    this.setState({serviceChange:false,serviceStatus:true});
-                }
-            },
-        });
-    }
-
-    searchOnChange = () => {
-        const {dispatch} = this.props;
-        this.setState({serviceChange: true});
-        message.success(`正在查询服务....`);
-        // const { dispatch } = props;
-        dispatch({
-            type: 'service/searchS',
-            payload: this.state.port===undefined?8101:this.state.port,
-            callback: (v) => {
-                if (v === 1) {
-                    message.success("当前服务已经开启");
-                    this.setState({serviceChange:false,serviceStatus:true});
-                }
-                else{
-                    message.success("当前服务已经关闭");
-                    this.setState({serviceChange:false,serviceStatus:false});
-                }
-            },
-        });
-
-
-    };
-
-    selectHandleChange=(value)=> {
-        this.setState({port:value});
-        console.log(`selected ${value}`);
-    };
-
-    openOnChange = () => {
-        const {dispatch} = this.props;
-        this.setState({serviceChange: true});
-        message.success(`正在开启服务....`);
-        // const { dispatch } = props;
-        dispatch({
-            type: 'service/openS',
-            payload: this.state.port===undefined?8101:this.state.port,
-            callback: (v) => {
-                if (v === 1) {
-                    let i = 0;
-                    while (i < 3) {
-                        this.timer = setTimeout(
-                            () => {
-                                // message.success(`开始执行查询${i}`);
-                                dispatch({
-                                    type: 'service/searchS',
-                                    payload: this.state.port===undefined?8101:this.state.port,
-                                    callback: (v) => {
-                                        if (v === 1) {
-                                            this.setState({serviceChange:false,serviceStatus:true});
-                                        }
-                                        else {
-                                            message.error("开启失败");
-                                            this.setState({serviceChange:false,serviceStatus:false});
-                                        }
-                                    },
-                                });
-                                },
-                            5000
-                        );
-                        // setTimeout(message.success(`开始执行查询${i}`),1000);
-                        if(this.state.serviceStatus===true)break;
-                        i++;
-                    }
-                }
-                else {
-                    message.error("开启失败");
-                    this.setState({serviceChange:false,serviceStatus:false});
-                }
-            },
-        });
-
-
-    };
 
     render() {
-        const Dragger = Upload.Dragger;
-        const pp = {
-		action: `//pcbdemo.api.galileo-ai.com:7001/pcb/testing?port=${this.state.port===undefined?8101:this.state.port}`,
-            onChange: this.handleChange,
-            multiple: true,
-            accept: 'image/*',
+        const { selectedRowKeys } = this.state;
+        const rowSelection = {
+            selectedRowKeys,
+            onChange: this.onSelectChange,
+            hideDefaultSelections: true,
+            selections: [{
+                key: 'all-data',
+                text: 'Select All Data',
+                onSelect: () => {
+                    this.setState({
+                        selectedRowKeys: [...Array(46).keys()], // 0...45
+                    });
+                },
+            }, {
+                key: 'odd',
+                text: 'Select Odd Row',
+                onSelect: (changableRowKeys) => {
+                    let newSelectedRowKeys = [];
+                    newSelectedRowKeys = changableRowKeys.filter((key, index) => {
+                        if (index % 2 !== 0) {
+                            return false;
+                        }
+                        return true;
+                    });
+                    this.setState({ selectedRowKeys: newSelectedRowKeys });
+                },
+            }, {
+                key: 'even',
+                text: 'Select Even Row',
+                onSelect: (changableRowKeys) => {
+                    let newSelectedRowKeys = [];
+                    newSelectedRowKeys = changableRowKeys.filter((key, index) => {
+                        if (index % 2 !== 0) {
+                            return true;
+                        }
+                        return false;
+                    });
+                    this.setState({ selectedRowKeys: newSelectedRowKeys });
+                },
+            }],
+            onSelection: this.onSelection,
         };
-        console.log(`服务状态:${JSON.stringify(this.state.serviceStatus)}`);
         return (
-            <LocaleProvider locale={zhCN}>
-                <Spin spinning={this.state.serviceChange}
-                      tip={`loading.....${this.state.loadingTip === undefined ? "查询服务状态" : this.state.loadingTip}`}>
-                    <div style={{width: '50%', margin: '100px auto'}}>
-                        端口:
-                        <Select defaultValue={8097} style={{ width: 120 }} onChange={this.selectHandleChange}>
-                            <Option value="8097">8097</Option>
-                            <Option value="8098">8098</Option>
-                            <Option value="8099">8099</Option>
-                            <Option value="8100">8100</Option>
-                            <Option value="8101">8101</Option>
-                            <Option value="8102">8102</Option>
-                            <Option value="8103">8103</Option>
-                            <Option value="8104">8104</Option>
-                            <Option value="8105">8105</Option>
-                            <Option value="8106">8106</Option>
-                        </Select>
-                        <div>
-                            服务状态:{this.state.serviceStatus===undefined?<div><Icon type="mth" theme="twoTone" twoToneColor="#ff8c00"/>未知</div>:this.state.serviceStatus===true?<div><Icon type="smile" theme="twoTone" twoToneColor="#52c41a"/>开启</div>: <div><Icon type="frown" theme="twoTone" twoToneColor="#eb2f96"/>关闭</div>}
-                        </div>
-                        <div>
-                            {(this.state.serviceStatus!==undefined&&this.state.serviceStatus===true?
-                                <Button type="primary" size="small" onClick={this.closeOnChange}>关闭</Button>:
-                                <Button type="primary" size="small" onClick={this.openOnChange}>开启</Button>)}
-                            <Button id="table-to-xls" style={{ marginLeft: 8 }} type="primary" size="small" onClick={this.searchOnChange}>手动查询服务状态</Button>
-                        </div>
-                        <Dragger {...pp} fileList={this.state.fileList}>
-                            <p className="ant-upload-drag-icon">
-                                <Icon type="inbox"/>
-                            </p>
-                            <p className="ant-upload-text">{`面板识别-检测点${this.state.port === 8097 ? 1 : this.state.port === 8098 ? 2 : this.state.port === 8099 ? 3 : this.state.port === 8100 ? 4 : ""}`}</p>
-                            <p className="ant-upload-hint">批量上传图片请点击或者拖放文件到该区域,支持单个或者批量的文件</p>
-                        </Dragger>
-                    </div>
-                </Spin>
-            </LocaleProvider>
+            <Table rowSelection={rowSelection} columns={columns} dataSource={data} />
         );
     }
 }
