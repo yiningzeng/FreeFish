@@ -55,9 +55,9 @@ def insert_log(db, id, user_nick, appoint_key_id, url, title, price, location, d
             `description`='%s', `distance`='%s',`search_time`='%s', `remark`=%s, `status_type`='%s' \
             WHERE id='%s'" % (appoint_key_id, user_nick, url, title, price, location, desc, time, search_time, remark, status, id)
     else:
-        sql = "INSERT INTO fishs(`id`, `user_nick`, `appoint_key_id`, `url`, `title`, `price`, `now_price`, `location`, `description`, `distance`, `search_time`) \
+        sql = "INSERT INTO fishs(`id`, `user_nick`, `appoint_key_id`, `url`, `title`, `price`, `now_price`, `location`, `description`, `distance`, `search_time`, `create_time`) \
                           VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')" % \
-              (id, user_nick, appoint_key_id, url, title, price, price, location, desc, time, search_time)
+              (id, user_nick, appoint_key_id, url, title, price, price, location, desc, time, search_time, search_time)
         os.system("echo '\t\t%s' '%s'" % ("新发布:￥" + price, title+" "+url))
         os.system("notify-send '%s' '%s' -t %d" % ("新发布:￥" + price, title + " " + url, insert_show_time))
     try:
