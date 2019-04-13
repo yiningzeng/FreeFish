@@ -38,7 +38,7 @@ def insert_log(db, id, user_nick, appoint_key_id, url, title, price, location, d
         all_disparity = float(price) - float(data[4])
         if disparity < 0:
             remark = "'降%s'" % str(all_disparity) # remark 这里需要注意字符串需要用''包住，下面sql语句没有直接设置''
-            os.system("echo '%s' '%s'" % ("降价:￥" + price, title+" "+url))
+            os.system("echo '\t\t%s' '%s'" % ("降价:￥" + price, title+" "+url))
             os.system("notify-send '%s' '%s' -t %d" % ("降价:￥" + price, title+" "+url, update_shiw_time))
             status = "2"
         elif disparity > 0:
@@ -58,7 +58,7 @@ def insert_log(db, id, user_nick, appoint_key_id, url, title, price, location, d
         sql = "INSERT INTO fishs(`id`, `user_nick`, `appoint_key_id`, `url`, `title`, `price`, `now_price`, `location`, `desc`, `time`, `search_time`) \
                           VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')" % \
               (id, user_nick, appoint_key_id, url, title, price, price, location, desc, time, search_time)
-        os.system("echo '%s' '%s'" % ("新发布:￥" + price, title+" "+url))
+        os.system("echo '\t\t%s' '%s'" % ("新发布:￥" + price, title+" "+url))
         os.system("notify-send '%s' '%s' -t %d" % ("新发布:￥" + price, title + " " + url, insert_show_time))
     try:
         # 执行sql语句
@@ -76,6 +76,7 @@ def perform_command(cmd, inc):
     schedule.enter(inc, 0, perform_command, (cmd, inc))
     os.system(cmd)
     for i, item in enumerate(search_key()):
+        os.system("echo '\t%s'查询：\n" % item[1])
         try:
             if item[2] == 1:
                 # print "search key :", item[1]
