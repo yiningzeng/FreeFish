@@ -37,12 +37,12 @@ def insert_log(db, id, user_nick, appoint_key_id, url, title, price, location, d
         disparity = float(price) - float(data[5])
         all_disparity = float(price) - float(data[4])
         if disparity < 0:
-            remark = "降%s" % str(all_disparity)
+            remark = "'降%s'" % str(all_disparity) # remark 这里需要注意字符串需要用''包住，下面sql语句没有直接设置''
             os.system("echo '%s' '%s'" % ("降价:￥" + price, title+" "+url))
             os.system("notify-send '%s' '%s' -t %d" % ("降价:￥" + price, title+" "+url, update_shiw_time))
             status = "2"
         elif disparity > 0:
-            remark = "涨%s" % str(all_disparity)
+            remark = "'涨%s'" % str(all_disparity)
             status = data[7]
         else:
             if data[6] is None:
@@ -118,4 +118,4 @@ def run(cmd, inc=20*60):
 
 
 if __name__ == '__main__':
-    run('echo $(date) 开始查询', 8*60)
+    run('echo $(date) 开始查询', 8*10)
