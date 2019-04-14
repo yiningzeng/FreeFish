@@ -1,18 +1,37 @@
 import request from '../utils/request';
+import { stringify } from 'qs';
 
-const ip="pcbdemo.api.galileo-ai.com:7001";//"10.50.102.166";
-export async function openS(port) {
-  return request(`http://${ip}/pcb/service/${port}/open/`,{
-    method: 'GET',
-  });
-}
-export async function closeS(port) {
-    return request(`http://${ip}/pcb/service/${port}/close/`,{
+const ip="vps.yining.site:8080";//"10.50.102.166";
+export async function getFishs(params) {
+    console.log("getFishs"+JSON.stringify(params));
+    return request(`http://${ip}/api/v1/fishs/list?${stringify(params)}`, {
+        headers: {authorization: 'free_fish'},
         method: 'GET',
     });
 }
-export async function searchS(port) {
-    return request(`http://${ip}/pcb/service/${port}/status/`,{
+export async function getAppointKey() {
+    return request(`http://${ip}/api/v1/fishs/keys`,{
+        headers: {authorization: 'free_fish'},
         method: 'GET',
+    });
+}
+
+export async function updateFishStatus(params) {
+    return request(`http://${ip}/api/v1/fishs/${params.id}`,{
+        method: 'PATCH',
+        body:stringify(params),
+        headers:{
+            authorization: 'free_fish',
+            'Content-Type':'application/x-www-form-urlencoded',
+        },
+    });
+}
+
+export async function delFish(params) {
+    return request(`http://${ip}/api/v1/fishs/${params.id}`,{
+        method: 'DELETE',
+        headers:{
+            authorization: 'free_fish',
+        },
     });
 }

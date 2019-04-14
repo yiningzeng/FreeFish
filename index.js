@@ -1,39 +1,20 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import dva, { connect } from 'dva';
-import { LocaleProvider, Table, message,Upload, Icon,Spin ,Button,Select} from 'antd';
+import { Tag, Row, Col, Table, message, Divider, Icon,Spin ,Button,Select} from 'antd';
 // 由于 antd 组件的默认文案是英文，所以需要修改为中文
 import zhCN from 'antd/lib/locale-provider/zh_CN';
 import moment from 'moment';
 import 'moment/locale/zh-cn';
-import { openS,closeS,searchS} from './services/api';
+import { getFishs, getAppointKey, updateFishStatus, delFish} from './services/api';
 
 moment.locale('zh-cn');
-
-const columns = [{
-    title: 'Name',
-    dataIndex: 'name',
-}, {
-    title: 'Age',
-    dataIndex: 'age',
-}, {
-    title: 'Address',
-    dataIndex: 'address',
-}];
-
-const data = [];
-for (let i = 0; i < 46; i++) {
-    data.push({
-        key: i,
-        name: `Edward King ${i}`,
-        age: 32,
-        address: `London, Park Lane no. ${i}`,
-    });
-}
 
 class FreeFish extends React.Component {
     state = {
         selectedRowKeys: [], // Check here to configure the default column
+        pagination: {defaultPageSize:100},
+        loading: false,
     };
 
     onSelectChange = (selectedRowKeys) => {
@@ -42,35 +23,136 @@ class FreeFish extends React.Component {
     };
 
     componentDidMount() {
-        try{
-            const tableCon = ReactDOM.findDOMNode(this.refs['table']);
-            const table = tableCon.querySelector('table');
-            table.setAttribute('id','table-to-xls');
-        }
-        catch (e) {
-            // console.error(e);
-        }
+        // try{
+        //     const tableCon = ReactDOM.findDOMNode(this.refs['table']);
+        //     const table = tableCon.querySelector('table');
+        //     table.setAttribute('id','table-to-xls');
+        // }
+        // catch (e) {
+        //     // console.error(e);
+        // }
         const {dispatch} = this.props;
-        message.success(`正在查询服务开启状态...`);
+        message.success(`正在查启状态...`);
         dispatch({
-            type: 'service/searchS',
-            payload: 8081,
+            type: 'service/getAppointKey',
             callback: (v) => {
-                console.log(`${this.state.port}服务开启状态:${v}`);
-                if (v === 1) {
-                    this.setState({serviceChange: false, serviceStatus: true});
-                    this.forceUpdate();
-                }
-                else {
-                    this.setState({serviceChange: false, serviceStatus: false});
-                }
-                // message.success(JSON.stringify(v));
-            },
+                dispatch({
+                    type: 'service/getFishs',
+                    payload: {
+                        page: 0,
+                        size: 100,
+                    },
+                    callback: (v) => {
+                        this.setState({
+                            ...this.state,
+                            pagination:{
+                                ...this.state.pagination,
+                                total: v["data"]["totalElements"]
+                            }
+                        });
+                        console.log(`${JSON.stringify(v)}`);
+                },
+                });
+            }
         });
+        // dispatch({
+        //     type: 'service/getFishs',
+        //     payload: {
+        //         page: 0,
+        //         size: 10,
+        //     },
+        //     callback: (v) => {
+        //         console.log(`服务开启状态:${v}`);
+        //         message.success(JSON.stringify(v));
+            // },
+        // });
     }
 
+    handleTableChange = (pagination, filters, sorter) => {
+        const pager = { ...this.state.pagination };
+        pager.current = pagination.current;
+        this.setState({
+            pagination: pager,
+        });
+
+        const {dispatch} = this.props;
+        console.log("filters"+filters.appointKey.length+" !"+JSON.stringify(filters));
+        dispatch({
+            type: 'service/getFishs',
+            payload: {
+                appointKeyId: filters.appointKey.length>0?filters.appointKey[0]:undefined,
+                page: pager.current-1,
+                size: 100,
+            },
+            callback: (v) => {
+                this.setState({
+                    ...this.state,
+                    pagination:{
+                        ...this.state.pagination,
+                        total: v["data"]["totalElements"]
+                    }
+                });
+                console.log(`${JSON.stringify(v)}`);
+            },
+        });
+        // this.fetch({
+        //     results: pagination.pageSize,
+        //     page: pagination.current,
+        //     sortField: sorter.field,
+        //     sortOrder: sorter.order,
+        //     ...filters,
+        // });
+    };
 
     render() {
+        const {
+            service: { list: { data }, keylist }
+        } = this.props;
+
+        let filters = keylist.data.map(function(item){
+                return {text: `[${item["status"]===1?"开启":"关闭"}] ${item["key"]}`, value: item["id"]};
+        });
+
+        const columns = [{
+            title: '关键字',
+            dataIndex: 'appointKey',
+            filters: filters,
+            render: v => v['key'],
+        }, {
+            title: '查询时间',
+            dataIndex: 'searchTime',
+        }, {
+            title: '距离现在',
+            dataIndex: 'distance',
+        }, {
+            title: '标题',
+            dataIndex: 'title',
+        }, {
+            title: '初始价钱',
+            dataIndex: 'price',
+        }, {
+            title: '当前价',
+            dataIndex: 'nowPrice',
+        }, {
+            title: '涨跌',
+            dataIndex: 'remark',
+        }, {
+            title: '发布人',
+            dataIndex: 'userNick',
+        }, {
+            title: '地址',
+            dataIndex: 'location',
+        }, {
+            title: '来源',
+            dataIndex: 'froms',
+            render: v => {
+                if(v === 1) return <Tag color="#87d068">闲鱼</Tag>;
+                else if(v === 2) return  <Tag color="#f50">转转</Tag>;
+                else return  <Tag>未知</Tag>;
+            }
+        }];
+
+
         const { selectedRowKeys } = this.state;
         const rowSelection = {
             selectedRowKeys,
@@ -114,7 +196,26 @@ class FreeFish extends React.Component {
             onSelection: this.onSelection,
         };
         return (
-            <Table rowSelection={rowSelection} columns={columns} dataSource={data} />
+            <Table size={"small"} rowSelection={rowSelection} columns={columns} dataSource={data.content} onChange={this.handleTableChange}
+                   expandedRowRender={record => {
+                       return(
+                           <Row>
+                               <Row>
+                                   <Button type="primary" size="small" style={{marginLeft: 10}}>Primary</Button>
+                                   <Button type="primary" size="small" style={{marginLeft: 10}}>Primary</Button>
+                                   <Button type="primary" size="small" style={{marginLeft: 10}}>Primary</Button>
+                               </Row>
+                               <Row>
+                                   <Divider/>
+                               </Row>
+                               <Row>
+                                   <a href={record.url} target="view_window" style={{ margin: 0 }}>{record.description}</a>
+                               </Row>
+                           </Row>
+                       )
+                   }}
+                   expandRowByClick
+                   pagination={this.state.pagination}/>
         );
     }
 }
@@ -126,35 +227,90 @@ console.log(2);
 // app.model(require('./src/models/service').default);
 app.model({
     namespace: 'service',
-    state: 0,
+    state: {
+        res: {
+            code: undefined,
+            status: undefined,
+            msg: '',
+            data: [],
+        },
+        list: {
+            code: undefined,
+            status: undefined,
+            msg: '',
+            data: [],
+        },
+        keylist: {
+            code: undefined,
+            status: undefined,
+            msg: '',
+            data: [],
+        },
+    },
     effects: {
-        *openS({ payload ,callback}, { call, put }) {
-            const response = yield call(openS, payload);
-            if (callback) callback(response);
+        *getFishs({ payload,callback}, { call, put }) {
+            const response = yield call(getFishs,payload);
+            yield put({
+                type: 'list',
+                payload: response,
+            });
+            if (callback)callback(response);
         },
-        *closeS({ payload ,callback}, { call, put }) {
-            const response = yield call(closeS, payload);
-            if (callback) callback(response);
+        *getAppointKey({ callback}, { call, put }) {
+            const response = yield call(getAppointKey);
+            console.log(JSON.stringify(response));
+            yield put({
+                type: 'keylist',
+                payload: response,
+            });
+            if (callback)callback(response);
         },
-        *searchS({ payload ,callback}, { call, put }) {
-            const response = yield call(searchS, payload);
-            if (callback) callback(response);
+        *updateFishStatus({ payload,callback}, { call, put }) {
+            const response = yield call(updateFishStatus,payload);
+            yield put({
+                type: 'res',
+                payload: response,
+            });
+            if (callback)callback(response);
+        },
+        *delFish({ payload,callback}, { call, put }) {
+            const response = yield call(delFish,payload);
+            yield put({
+                type: 'res',
+                payload: response,
+            });
+            if (callback)callback(response);
         },
     },
     reducers: {
-        add  (count) { return count + 1 },
-        minus(count) { return count - 1 },
+        res(state, action) {
+            return {
+                ...state,
+                res: action.payload,
+            };
+        },
+        list(state, action) {
+            return {
+                ...state,
+                list: action.payload,
+            };
+        },
+        keylist(state, action) {
+            return {
+                ...state,
+                keylist: action.payload,
+            };
+        },
     },
 });
 // 3. View
 const App = connect(({ service }) => ({
     service
 }))(function(props) {
-
     const { dispatch } = props;
     return (
         <div>
-            <FreeFish dispatch={dispatch}/>
+            <FreeFish {...props}/>
         </div>
     );
 });

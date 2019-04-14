@@ -10,7 +10,7 @@ reload(sys)
 sys.setdefaultencoding("utf-8")
 schedule = sched.scheduler(time.time, time.sleep)
 update_shiw_time = 10000
-insert_show_time = 2000
+insert_show_time = 800
 
 
 def search_key():
@@ -119,4 +119,4 @@ def run(cmd, inc=20*60):
 
 
 if __name__ == '__main__':
-    run('echo $(date) 开始查询', 1)
+    run('echo $(date) 开始查询', 8*60)
