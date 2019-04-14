@@ -31,7 +31,7 @@ def insert_log(db, id, user_nick, appoint_key_id, url, title, price, location, d
     # 打开数据库连接
     # 使用cursor()方法获取操作游标
     cursor = db.cursor()
-    cursor.execute("SELECT `id`, `appoint_key_id`, `url`, `title`, `price`, `now_price`, `remark`, `status_type`, `location`, `description`, `distance`, `search_time` FROM fishs WHERE id='%s'" % id)
+    cursor.execute("SELECT `id`, `appoint_key_id`, `url`, `title`, `price`, `now_price`, `remark`, `status_type`, `location`, `description`, `distance`, `search_time` FROM fishs WHERE id='%s'" % str(id))
     data = cursor.fetchone()
     if data:
         disparity = float(price) - float(data[5])
@@ -56,7 +56,7 @@ def insert_log(db, id, user_nick, appoint_key_id, url, title, price, location, d
             WHERE id='%s'" % (appoint_key_id, user_nick, url, title, price, location, desc, time, search_time, remark, status, id)
     else:
         sql = "INSERT INTO fishs(`id`, `user_nick`, `appoint_key_id`, `url`, `title`, `price`, `now_price`, `location`, `description`, `distance`, `search_time`, `create_time`) \
-                          VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')" % \
+                          VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')" % \
               (id, user_nick, appoint_key_id, url, title, price, price, location, desc, time, search_time, search_time)
         os.system("echo '\t\t%s' '%s'" % ("新发布:￥" + price, title+" "+url))
         os.system("notify-send '%s' '%s' -t %d" % ("新发布:￥" + price, title + " " + url, insert_show_time))
@@ -102,7 +102,7 @@ def perform_command(cmd, inc):
                     location = element.find("div", class_="item-location").string
                     desc = element.find("div", class_="item-brief-desc").string
                     up_time = element.find("span", class_="item-pub-time").string
-                    # (id, url, title, price, location, desc, time):
+                    # (db, id, user_nick, appoint_key_id, url, title, price, location, desc, time, search_time):
                     insert_log(db, id, user_nick, item[0], url, title, price, location, desc, up_time, time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
         except Exception, e:
             print(e.message)
