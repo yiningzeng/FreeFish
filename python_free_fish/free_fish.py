@@ -13,6 +13,20 @@ update_shiw_time = 10000
 insert_show_time = 800
 
 
+def search_blacklist():
+    # 打开数据库连接
+    db = MySQLdb.connect("vps.yining.site", "baymin", "baymin1024!@#$%", "free_fish", charset='utf8')
+    # 使用cursor()方法获取操作游标
+    cursor = db.cursor()
+    # 使用execute方法执行SQL语句
+    cursor.execute("SELECT `id`, `text`, `user_nick` FROM blacklist")
+    # 使用 fetchone() 方法获取一条数据
+    data = cursor.fetchall()
+    # 关闭数据库连接
+    db.close()
+    return data
+
+
 def search_key():
     # 打开数据库连接
     db = MySQLdb.connect("vps.yining.site", "baymin", "baymin1024!@#$%", "free_fish", charset='utf8')
@@ -72,6 +86,8 @@ def insert_log(db, id, user_nick, appoint_key_id, url, title, price, location, d
 
 def search():
     db = MySQLdb.connect("vps.yining.site", "baymin", "baymin1024!@#$%", "free_fish", charset='utf8')
+    blacklist = search_blacklist()
+
     for i, item in enumerate(search_key()):
         os.system("echo '\t%s'查询：\n" % item[1])
         try:
@@ -99,10 +115,16 @@ def search():
                     location = element.find("div", class_="item-location").string
                     desc = element.find("div", class_="item-brief-desc").string
                     up_time = element.find("span", class_="item-pub-time").string
+                    desc = "我是骗子"
+                    bb = [elem for elem in blacklist if elem != None and ((elem[1] != None and desc.find(elem[1].encode("utf-8")) >= 0) or (elem[2] != None and user_nick == elem[2].encode("utf-8")))]
+                    if(len(bb) == 0):
+                        insert_log(db, id, user_nick, item[0], url, title, price, location, desc, up_time, time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
                     # (db, id, user_nick, appoint_key_id, url, title, price, location, desc, time, search_time):
-                    insert_log(db, id, user_nick, item[0], url, title, price, location, desc, up_time, time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+                    else:
+                        os.system("echo '\t\t'已过滤黑名单")
         except Exception, e:
             print(e.message)
+    os.system("echo $(date) 本轮结束 '\n'--------------------------------'\n'")
     # 关闭数据库连接
     db.close()
 
@@ -112,7 +134,6 @@ def perform_command(cmd, inc):
     schedule.enter(inc, 0, perform_command, (cmd, inc))
     os.system(cmd)
     search()
-    os.system("echo $(date) 本轮结束 '\n'--------------------------------'\n'")
 
 
 def run(cmd, inc=20*60):
