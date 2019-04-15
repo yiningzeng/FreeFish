@@ -115,7 +115,6 @@ def search():
                     location = element.find("div", class_="item-location").string
                     desc = element.find("div", class_="item-brief-desc").string
                     up_time = element.find("span", class_="item-pub-time").string
-                    desc = "我是骗子"
                     bb = [elem for elem in blacklist if elem != None and ((elem[1] != None and desc.find(elem[1].encode("utf-8")) >= 0) or (elem[2] != None and user_nick == elem[2].encode("utf-8")))]
                     if(len(bb) == 0):
                         insert_log(db, id, user_nick, item[0], url, title, price, location, desc, up_time, time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
