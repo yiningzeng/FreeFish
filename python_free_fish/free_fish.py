@@ -70,11 +70,8 @@ def insert_log(db, id, user_nick, appoint_key_id, url, title, price, location, d
         db.rollback()
 
 
-def perform_command(cmd, inc):
-    # 在inc秒后再次运行自己，即周期运行
+def search():
     db = MySQLdb.connect("vps.yining.site", "baymin", "baymin1024!@#$%", "free_fish", charset='utf8')
-    schedule.enter(inc, 0, perform_command, (cmd, inc))
-    os.system(cmd)
     for i, item in enumerate(search_key()):
         os.system("echo '\t%s'查询：\n" % item[1])
         try:
@@ -106,9 +103,16 @@ def perform_command(cmd, inc):
                     insert_log(db, id, user_nick, item[0], url, title, price, location, desc, up_time, time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
         except Exception, e:
             print(e.message)
-    os.system("echo $(date) 本轮结束 '\n'--------------------------------'\n'")
     # 关闭数据库连接
     db.close()
+
+
+def perform_command(cmd, inc):
+    # 在inc秒后再次运行自己，即周期运行
+    schedule.enter(inc, 0, perform_command, (cmd, inc))
+    os.system(cmd)
+    search()
+    os.system("echo $(date) 本轮结束 '\n'--------------------------------'\n'")
 
 
 def run(cmd, inc=20*60):
@@ -119,4 +123,7 @@ def run(cmd, inc=20*60):
 
 
 if __name__ == '__main__':
+    os.system('echo $(date) 开始查询')
+    search()
+    os.system("echo $(date) 本轮结束 '\n'--------------------------------'\n'")
     run('echo $(date) 开始查询', 8*60)
