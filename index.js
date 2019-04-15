@@ -32,13 +32,14 @@ class FreeFish extends React.Component {
         //     // console.error(e);
         // }
         const {dispatch} = this.props;
-        message.success(`正在查启状态...`);
+        message.success(`正在加载`);
         dispatch({
             type: 'service/getAppointKey',
             callback: (v) => {
                 dispatch({
                     type: 'service/getFishs',
                     payload: {
+                        showTip: 0,
                         page: 0,
                         size: 100,
                     },
@@ -80,6 +81,7 @@ class FreeFish extends React.Component {
         dispatch({
             type: 'service/getFishs',
             payload: {
+                showTip: 0,
                 appointKeyId: filters.appointKey.length>0?filters.appointKey[0]:undefined,
                 page: pager.current-1,
                 size: 100,
